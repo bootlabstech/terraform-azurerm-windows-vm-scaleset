@@ -3,7 +3,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "windowsscaleset" {
   name                = var.name
   location            = var.location
   resource_group_name = var.resource_group_name
-  admin_password      = var.admin_password
+  admin_password      = random_password.password.result
   admin_username      = var.admin_username
   instances           = var.no_of_instances
   sku                 = var.sku
@@ -86,4 +86,31 @@ resource "azurerm_virtual_machine_scale_set_extension" "example" {
     }
 SETTINGS
   depends_on = [azurerm_windows_virtual_machine_scale_set.windowsscaleset]
+}
+# Getting existing Keyvault name to store credentials as secrets
+data "azurerm_key_vault" "key_vault" {
+  name                = var.keyvault_name
+  resource_group_name = var.resource_group_name
+}
+
+# Creates a random string password for vm default user
+resource "random_password" "password" {
+  length      = 12
+  lower       = true
+  min_lower   = 6
+  min_numeric = 2
+  min_special = 2
+  min_upper   = 2
+  numeric     = true
+  special     = true
+  upper       = true
+
+}
+# Creates a secret to store DB credentials 
+resource "azurerm_key_vault_secret" "vm_password" {
+  name         = "${var.name}-vmpwd"
+  value        = random_password.password.result
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+
+  depends_on = [ azurerm_windows_virtual_machine_scale_set.windowsscaleset ]
 }

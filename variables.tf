@@ -6,10 +6,6 @@ variable "resource_group_name" {
   type = string
 
 }
-variable "admin_password" {
-  type = string
-
-}
 variable "admin_username" {
   type = string
 
@@ -87,4 +83,8 @@ variable "nsg_rules" {
       source_port_range          = "*"
     }
   }
+}
+variable "keyvault_name" {
+    type = string
+  
 }
